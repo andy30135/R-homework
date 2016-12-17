@@ -1,0 +1,85 @@
+---
+title: "R homework"
+author: "賴冠儒"
+date: "2016年12月15日"
+output: 
+  html_document:
+   toc: true
+---
+
+## **1.簡介**
+
+利用Kaggle 的 Titanic 訓練資料來進行資料分析
+
+## **2.資料讀取**
+
+使用 `read.csv()` 函數讀入資料集
+```{r}
+titanic_csv <- read.csv("https://storage.googleapis.com/r_rookies/kaggle_titanic_train.csv", header=TRUE)
+```
+
+## **3.資料框外觀**
+
+資料有 891 個觀測值與 12 個變數
+```{r}
+str(titanic_csv)
+```
+
+## **4.資料清理**
+
+這個資料的 Age 變數有 177 個遺漏值
+```{r}
+summary(titanic_csv$Age)
+```
+我使用平均數填補這些遺漏值，並四捨五入至整數
+```{r}
+Age_mean <- round(mean(titanic_csv$Age, na.rm = TRUE), 0)
+titanic_csv$Age[is.na(titanic_csv$Age)] <- Age_mean
+summary(titanic_csv$Age)
+```
+
+## **5.資料視覺化**
+
+把Age變數區間化
+分為4個層級
+```{r}
+titanic_csv_age <- titanic_csv$Age
+
+
+mean_age <- NULL
+
+for(i in titanic_csv_age){ 
+  if(i <= 20){
+    mean_age <- c(mean_age,0~20)
+  } else if(i <= 40){
+    mean_age <- c(mean_age,21~40)
+  } else if(i <= 60){
+    mean_age <- c(mean_age,41~60)
+  } else {
+    mean_age <- c(mean_age,60~80)
+  }
+}
+
+mean_age_df <- as.data.frame.vector(mean_age)
+```
+
+再把新的區間數列`mean_age`合併到`titanic_csv`成為`titanic_csv_new`
+```{r}
+titanic_csv_new <- cbind(titanic_csv, mean_age_df)
+```
+
+利用`ggplot2`和`plotly`套件作資料分析圖
+```{r}
+library(ggplot2)
+library(plotly)
+```
+
+```{r}
+ggplot_bar_mean_age <- ggplot(titanic_csv_new, aes(x = mean_age, y = Survived, z = Sex, fill= Sex)) + geom_bar(stat = "identity")
+ggplot_bar_mean_age_plotly <- ggplotly(ggplot_bar_mean_age)
+ggplot_bar_mean_age_plotly
+```
+
+## **6.結論**
+
+平均年齡在21~40歲的人存活率較高，且女性大於男性
